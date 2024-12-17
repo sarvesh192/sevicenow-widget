@@ -30,3 +30,91 @@
 	font-size: 20px;
 	line-height: 1;
 }
+
+.container {
+	padding: 1rem;
+	
+	.card-container {
+		border: 1px solid #d8dde6;
+		border-radius: 0.25rem;
+	}
+
+	.header-card {
+		padding: 0.75rem;
+		border-bottom: 1px solid #d8dde6;
+		
+		.header-content {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+	}
+
+	.logo-class {
+		height: 24px;
+		margin-right: 0.5rem;
+	}
+
+	.tabs-container {
+		.tabs-header {
+			display: flex;
+			border-bottom: 1px solid #d8dde6;
+			
+			.tab {
+				padding: 0.5rem 1rem;
+				cursor: pointer;
+				
+				&.active {
+					border-bottom: 2px solid #0070d2;
+				}
+			}
+		}
+	}
+
+	.accordion {
+		.accordion-section {
+			border-bottom: 1px solid #d8dde6;
+			
+			.accordion-header {
+				padding: 0.75rem;
+				cursor: pointer;
+				background: #f3f2f2;
+			}
+			
+			.accordion-content {
+				padding: 1rem;
+				
+				.content-area {
+					position: relative;
+					border: 1px solid #d8dde6;
+					padding: 0.5rem;
+					min-height: 100px;
+				}
+			}
+		}
+	}
+
+	.btn {
+		padding: 0.5rem 1rem;
+		border-radius: 0.25rem;
+		
+		&.btn-primary {
+			background: #0070d2;
+			color: white;
+		}
+	}
+
+	.spinner {
+		border: 2px solid #f3f3f3;
+		border-top: 2px solid #0070d2;
+		border-radius: 50%;
+		width: 20px;
+		height: 20px;
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
+	}
+}
