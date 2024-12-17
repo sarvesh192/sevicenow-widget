@@ -1,0 +1,18 @@
+{
+  "components": {
+    "x-1578569-enjo-test": {
+      "innerComponents": [],
+      "uiBuilder": {
+        "associatedTypes": [
+          "global.core",
+          "global.landing-page"
+        ],
+        "label": "Enjo Component",
+        "tileIcon": "./tile-icon/generic-tile-icon.svg",
+        "description": "Descriptoin for test enjo component",
+        "category": "primitives"
+      }
+    }
+  },
+  "scopeName": "x_1578569_enjo_t_0"
+}

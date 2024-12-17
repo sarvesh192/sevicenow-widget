@@ -1,0 +1,32 @@
+@import '@servicenow/sass-kit/host';
+
+.accordion-container {
+	max-width: 800px;
+	margin: 20px auto;
+}
+
+.accordion-section {
+	border: 1px solid #ddd;
+	margin-bottom: 5px;
+	border-radius: 4px;
+}
+
+.accordion-header {
+	padding: 15px;
+	background-color: #f5f5f5;
+	cursor: pointer;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-weight: bold;
+}
+
+.accordion-content {
+	padding: 15px;
+	border-top: 1px solid #ddd;
+}
+
+.accordion-icon {
+	font-size: 20px;
+	line-height: 1;
+}
