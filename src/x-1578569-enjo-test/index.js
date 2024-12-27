@@ -6,7 +6,7 @@ import {actionTypes} from '@servicenow/ui-core';
 
 const view = (state, {updateState}) => {
 	const {
-		activeSection,
+		activeTab,
 		activeSections,
 		summaryContent,
 		aiAnswer,
@@ -15,7 +15,14 @@ const view = (state, {updateState}) => {
 		isSummaryReady,
 		isAIanswerReady,
 		isKnowledgeReady,
-		activeTab
+		isModalOpen,
+		modalText,
+		modalHeading,
+		logoUrl,
+		widgetHeading,
+		buttonHeading,
+		isApiCallInProgress,
+		showFooter
 	} = state;
 
 	return (
@@ -25,13 +32,14 @@ const view = (state, {updateState}) => {
 				<div className="header-card">
 					<div className="header-content">
 						<div className="logo-section">
-							<img src="enjo-logo.png" alt="Enjo Logo" className="logo-class"/>
-							<span className="heading">Enjo Assistant</span>
+							<img src={logoUrl || "enjo-logo.png"} alt="Enjo Logo" className="logo-class"/>
+							<span className="heading">{widgetHeading || "Enjo Assistant"}</span>
 						</div>
 						<div className="button-section">
 							<button className="btn btn-primary" 
-								on-click={() => updateState({isIframeVisible: !isIframeVisible})}>
-								Ask Enjo
+								on-click={() => updateState({isIframeVisible: !isIframeVisible})}
+								disabled={isApiCallInProgress}>
+								{isIframeVisible ? 'Close' : (buttonHeading || 'Ask Enjo')}
 							</button>
 						</div>
 					</div>
@@ -55,7 +63,7 @@ const view = (state, {updateState}) => {
 						<div className="tab-content">
 							{activeTab === 'chat' && (
 								<div className="chat-container">
-									<iframe src="your-chat-url" className="chat-frame"/>
+									<iframe src={state.chatUrl} className="chat-frame"/>
 								</div>
 							)}
 
@@ -86,7 +94,7 @@ const view = (state, {updateState}) => {
 																on-click={() => copySummary()}>
 																📋
 															</button>
-														</div>x
+														</div>
 													</div>
 												</div>
 											)}
@@ -139,7 +147,7 @@ const view = (state, {updateState}) => {
 															<span className="help-text">Click only when a case is closed</span>
 															<button className="btn btn-secondary"
 																on-click={() => generateKnowledge()}
-																disabled={knowledgeButtonState}>
+																disabled={isKnowledgeReady}>
 																Generate
 															</button>
 														</div>
@@ -165,10 +173,45 @@ const view = (state, {updateState}) => {
 						</div>
 					</div>
 				)}
+
+				{/* Footer */}
+				{showFooter && (
+					<div className="footer">
+						<span>Powered by</span>
+						
+						<a href="https://enjo.ai" target="_blank"><img src={logoUrl} alt="Enjo" /></a>
+					</div>
+				)}
 			</div>
+
+			{/* Modal */}
+			{isModalOpen && (
+				<div className="modal">
+					<div className="modal-content">
+						<h2>{modalHeading}</h2>
+						<p>{modalText}</p>
+						<button on-click={() => updateState({isModalOpen: false})}>Close</button>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };
+
+const urls = {
+	development: "https://api.dev.app.enjo.ai",
+	staging: "https://stage.app.enjo.ai",
+	production: "https://api.app.enjo.ai",
+	local: "https://7874-49-156-105-215.ngrok-free.app"
+};
+
+const baseUrl = urls['local']
+const hostname = window.location.hostname;
+const protocol = window.location.protocol;
+
+const servicenowDomain = `${protocol}//${hostname}`
+// const servicenowDomain = `https://dev240445.service-now.com`
+const agentConfigUrl = `${baseUrl}/api/widget/app.servicenow.webchat.agentConfig?isSalesforce=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`
 
 createCustomElement('x-1578569-enjo-test', {
 	renderer: {type: snabbdom},
@@ -185,30 +228,61 @@ createCustomElement('x-1578569-enjo-test', {
 		aiAnswer: '',
 		knowledgeContent: '',
 		recordId: '',
-		knowledgeButtonState: false
+		isModalOpen: false,
+		modalText: '',
+		modalHeading: '',
+		widgetHeading: 'Enjo Assistant',
+		buttonHeading: 'Ask Enjo',
+		logoUrl: '',
+		isApiCallInProgress: false,
+		showFooter: true,
+		chatUrl: "",
 	},
-	properties: {
-		tableId: {default: ''},
-		recordId: {default: ''}
-	},
-	effects: [
-		{
-			effect: createHttpEffect('api/now/table/sys_journal_field', {
-				method: 'GET',
-				queryParams: {
-					sysparm_query: 'element_id={{recordId}}^element=comments^ORDERBYDESCsys_created_on',
-					sysparm_display_value: true
+	actionHandlers: {
+		[actionTypes.COMPONENT_CONNECTED]: async ({state, updateState, dispatch}) => {
+			dispatch('FETCH_CASE_DATA')
+			let url = window.location.pathname;
+			const reg = new RegExp(/^[a-f0-9]{32}$/);
+			let incidentId = "";
+			url.split('/').forEach((data) => {
+				if(data.match(reg)) {
+					incidentId = data;
 				}
-			}),
-			events: [actionTypes.COMPONENT_CONNECTED],
-			success: ({action, updateState}) => {
-				const conversations = action.payload.result;
-				updateState({
-					summaryContent: conversations
-						.map(conv => `${conv.sys_created_on}: ${conv.value}`)
-						.join('\n\n')
-				});
-			}
-		}
-	]
+			})
+			const res = await fetch(agentConfigUrl, {
+				method: 'GET',
+				headers: {
+					"ngrok-skip-browser-warning": "69420"
+				}
+			})
+			const response = await res.json()
+
+			updateState({
+				recordId: incidentId,
+				logoUrl: response?.data?.logoUrl || 'https://app.enjo.ai/enjologo.svg',
+				widgetHeading: response?.data?.header || widgetHeading,
+				buttonHeading: response?.data?.buttonHeading || buttonHeading,
+				showFooter: response?.data?.showEnjoBranding
+			})
+		},
+		'FETCH_CASE_DATA': createHttpEffect('/api/now/table/sys_journal_field', {
+			method: 'GET',
+			queryParams: {
+				sysparm_query: `element_id=8c82b043835a121036b4a230ceaad3f8^element=comments^ORDERBYDESCsys_created_on`,
+				sysparm_display_value: true
+			},
+			successActionType: 'FETCH_CASE_DATA_SUCCESS'
+		}),
+		'FETCH_CASE_DATA_SUCCESS': ({action, updateState, state}) => {
+			const conversations = action.payload.result.filter((data) => data.element_id == "8c82b043835a121036b4a230ceaad3f8");
+			console.log('conversations', action)
+			updateState({
+				summaryContent: conversations
+					.map(conv => `${conv.value}`) 
+					.join('\n\n')
+			});
+		},
+		
+		
+	}
 });
