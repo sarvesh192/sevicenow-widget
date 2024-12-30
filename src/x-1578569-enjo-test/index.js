@@ -1,9 +1,8 @@
 import {createCustomElement} from '@servicenow/ui-core';
 import snabbdom from '@servicenow/ui-renderer-snabbdom';
 import styles from './styles.scss';
-import {createHttpEffect} from '@servicenow/ui-effect-http';
 import {actionTypes} from '@servicenow/ui-core';
-
+import '@servicenow/now-rich-text'
 const view = (state, {updateState}) => {
 	const {
 		activeTab,
@@ -84,7 +83,7 @@ const view = (state, {updateState}) => {
 												<div className="accordion-content">
 													<div className="content-area">
 														{!isSummaryReady && <div className="spinner"/>}
-														<div className="text-content">{summaryContent}</div>
+														<now-rich-text html={summaryContent}></now-rich-text>
 														<div className="action-buttons">
 															<button className="btn-icon refresh"
 																on-click={() => generateSummary()}>
@@ -114,7 +113,7 @@ const view = (state, {updateState}) => {
 												<div className="accordion-content">
 													<div className="content-area">
 														{!isAIanswerReady && <div className="spinner"/>}
-														<div className="text-content">{aiAnswer}</div>
+														<now-rich-text html={aiAnswer}></now-rich-text>
 														<div className="action-buttons">
 															<button className="btn-icon refresh"
 																on-click={() => generateAiAnswer()}>
@@ -146,13 +145,13 @@ const view = (state, {updateState}) => {
 														<div className="kb-header">
 															<span className="help-text">Click only when a case is closed</span>
 															<button className="btn btn-secondary"
-																on-click={() => generateKnowledge()}
-																disabled={isKnowledgeReady}>
+																on-click={() => generateKnowledgeHandler(state, updateState)} 
+																>
 																Generate
 															</button>
 														</div>
 														{!isKnowledgeReady && <div className="spinner"/>}
-														<div className="text-content">{knowledgeContent}</div>
+														<now-rich-text html={knowledgeContent}></now-rich-text>
 														<div className="action-buttons">
 															<button className="btn-icon refresh"
 																on-click={() => generateKnowledge()}>
@@ -202,16 +201,59 @@ const urls = {
 	development: "https://api.dev.app.enjo.ai",
 	staging: "https://stage.app.enjo.ai",
 	production: "https://api.app.enjo.ai",
-	local: "https://7874-49-156-105-215.ngrok-free.app"
+	local: "https://62a0-49-156-81-86.ngrok-free.app"
 };
 
 const baseUrl = urls['local']
 const hostname = window.location.hostname;
 const protocol = window.location.protocol;
 
-const servicenowDomain = `${protocol}//${hostname}`
-// const servicenowDomain = `https://dev240445.service-now.com`
-const agentConfigUrl = `${baseUrl}/api/widget/app.servicenow.webchat.agentConfig?isSalesforce=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`
+// const servicenowDomain = `${protocol}//${hostname}`
+const servicenowDomain = `https://dev240445.service-now.com`
+const agentConfigUrl = `${baseUrl}/api/widget/app.servicenow.webchat.agentConfig?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`
+const summaryUrl = `${baseUrl}/api/widget/app.servicenow.webchat.summary?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
+const knowledgeUrl = `${baseUrl}/api/widget/app.servicenow.webchat.generateKnowledge?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
+const aiAnswerUrl = `${baseUrl}/api/widget/app.servicenow.webchat.aiAnswer?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
+
+
+
+const generateKnowledge = async ({state, updateState}) => {
+	updateState({isKnowledgeReady: false});
+	try {
+	  const res = await fetch(`${knowledgeUrl}&incidentId=${state.recordId || '8c82b043835a121036b4a230ceaad3f8'}`, {
+		method: 'GET',
+		headers: {
+		  "ngrok-skip-browser-warning": "69420"
+		}
+	  });
+  
+	  const response = await res.json();
+  
+	  updateState({
+		knowledgeContent: response?.summary || 'No knowledge found.',
+		isKnowledgeReady: true,
+	  });
+	} catch (error) {
+	  console.error("Error fetching knowledge:", error);
+	  updateState({
+		isKnowledgeReady: true, 
+		knowledgeContent: 'Failed to load knowledge.',
+	  });
+	}
+};
+
+const generateCaseSummary = async ({state, updateState}) => {
+	try {
+
+	}catch(err) {
+		console.log(err);
+	}
+}
+
+  
+const generateKnowledgeHandler = (state, updateState) => {
+	generateKnowledge({state, updateState});
+};
 
 createCustomElement('x-1578569-enjo-test', {
 	renderer: {type: snabbdom},
@@ -257,32 +299,35 @@ createCustomElement('x-1578569-enjo-test', {
 			})
 			const response = await res.json()
 
+			const summaryRes = await fetch(`${summaryUrl}&incidentId=${incidentId || '8c82b043835a121036b4a230ceaad3f8'}`, {
+				method: 'GET',
+				headers: {
+					"ngrok-skip-browser-warning": "69420"
+				}
+			})
+			const summaryResponse = await summaryRes.json();
+
+			const aiAnswerRes = await fetch(`${aiAnswerUrl}&incidentId=${incidentId || '8c82b043835a121036b4a230ceaad3f8'}`,{
+				method: 'GET',
+				headers: {
+					"ngrok-skip-browser-warning": "69420"
+				}
+			})
+
+			const aiAnswerResponse = await aiAnswerRes.json();
+			const externalContentUrl = `${baseUrl}/api/hook/webchat.servicenow?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}&incidentId=${incidentId || '8c82b043835a121036b4a230ceaad3f8'}`;
+
+
 			updateState({
-				recordId: incidentId,
 				logoUrl: response?.data?.logoUrl || 'https://app.enjo.ai/enjologo.svg',
 				widgetHeading: response?.data?.header || widgetHeading,
 				buttonHeading: response?.data?.buttonHeading || buttonHeading,
-				showFooter: response?.data?.showEnjoBranding
+				summaryContent: summaryResponse?.summary,
+				showFooter: response?.data?.showEnjoBranding,
+				aiAnswer: aiAnswerResponse?.summary,
+				recordId: incidentId,
+				chatUrl: externalContentUrl
 			})
 		},
-		'FETCH_CASE_DATA': createHttpEffect('/api/now/table/sys_journal_field', {
-			method: 'GET',
-			queryParams: {
-				sysparm_query: `element_id=8c82b043835a121036b4a230ceaad3f8^element=comments^ORDERBYDESCsys_created_on`,
-				sysparm_display_value: true
-			},
-			successActionType: 'FETCH_CASE_DATA_SUCCESS'
-		}),
-		'FETCH_CASE_DATA_SUCCESS': ({action, updateState, state}) => {
-			const conversations = action.payload.result.filter((data) => data.element_id == "8c82b043835a121036b4a230ceaad3f8");
-			console.log('conversations', action)
-			updateState({
-				summaryContent: conversations
-					.map(conv => `${conv.value}`) 
-					.join('\n\n')
-			});
-		},
-		
-		
 	}
 });

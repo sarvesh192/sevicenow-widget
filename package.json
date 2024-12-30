@@ -14,10 +14,12 @@
   },
   "module": "src/index.js",
   "dependencies": {
+    "@servicenow/now-rich-text": "^19.8.2-ecd",
     "@servicenow/sass-kit": "latest",
     "@servicenow/ui-core": "24.1.1",
     "@servicenow/ui-effect-http": "^24.1.1",
-    "@servicenow/ui-renderer-snabbdom": "24.1.1"
+    "@servicenow/ui-renderer-snabbdom": "24.1.1",
+    "@servicenow/ui-testing-helpers": "^24.0.1"
   },
   "devDependencies": {
     "@babel/runtime": "7.25.7",
