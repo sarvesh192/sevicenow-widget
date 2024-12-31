@@ -86,11 +86,11 @@ const view = (state, {updateState}) => {
 														<now-rich-text html={summaryContent}></now-rich-text>
 														<div className="action-buttons">
 															<button className="btn-icon refresh"
-																on-click={() => generateSummary()}>
+																on-click={() => generateCaseSummaryHandler(state, updateState)}>
 																↻
 															</button>
 															<button className="btn-icon copy"
-																on-click={() => copySummary()}>
+																on-click={() => copyHandler(state.summaryContent)}>
 																📋
 															</button>
 														</div>
@@ -116,11 +116,11 @@ const view = (state, {updateState}) => {
 														<now-rich-text html={aiAnswer}></now-rich-text>
 														<div className="action-buttons">
 															<button className="btn-icon refresh"
-																on-click={() => generateAiAnswer()}>
+																on-click={() => generateAiAnswerHandler(state, updateState)}>
 																↻
 															</button>
 															<button className="btn-icon copy"
-																on-click={() => copyAiAnswer()}>
+																on-click={() => copyHandler(state.aiAnswer)}>
 																📋
 															</button>
 														</div>
@@ -158,7 +158,7 @@ const view = (state, {updateState}) => {
 																↻
 															</button>
 															<button className="btn-icon copy"
-																on-click={() => copyKnowledge()}>
+																on-click={() => copyHandler(state.knowledgeContent)}>
 																📋
 															</button>
 														</div>
@@ -201,7 +201,7 @@ const urls = {
 	development: "https://api.dev.app.enjo.ai",
 	staging: "https://stage.app.enjo.ai",
 	production: "https://api.app.enjo.ai",
-	local: "https://62a0-49-156-81-86.ngrok-free.app"
+	local: "http://localhost:4001"
 };
 
 const baseUrl = urls['local']
@@ -211,13 +211,23 @@ const protocol = window.location.protocol;
 // const servicenowDomain = `${protocol}//${hostname}`
 const servicenowDomain = `https://dev240445.service-now.com`
 const agentConfigUrl = `${baseUrl}/api/widget/app.servicenow.webchat.agentConfig?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`
-const summaryUrl = `${baseUrl}/api/widget/app.servicenow.webchat.summary?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
-const knowledgeUrl = `${baseUrl}/api/widget/app.servicenow.webchat.generateKnowledge?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
-const aiAnswerUrl = `${baseUrl}/api/widget/app.servicenow.webchat.aiAnswer?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
 
+const copyHandler = (content) => {
+	const parser = new DOMParser();
+	const html = parser.parseFromString(content, 'text/html');
+	const text = html.body.innerText || html.body.textContent;
 
+	navigator.clipboard.writeText(text)
+	.then(() => {
+
+	})
+	.catch((err) => {
+		console.log('Error in copying:', error)
+	}) 
+}
 
 const generateKnowledge = async ({state, updateState}) => {
+	const knowledgeUrl = `${baseUrl}/api/widget/app.servicenow.webchat.generateKnowledge?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
 	updateState({isKnowledgeReady: false});
 	try {
 	  const res = await fetch(`${knowledgeUrl}&incidentId=${state.recordId || '8c82b043835a121036b4a230ceaad3f8'}`, {
@@ -243,10 +253,53 @@ const generateKnowledge = async ({state, updateState}) => {
 };
 
 const generateCaseSummary = async ({state, updateState}) => {
+	const summaryUrl = `${baseUrl}/api/widget/app.servicenow.webchat.summary?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
+	updateState({isSummaryReady: false})
 	try {
+		const res = await fetch(`${summaryUrl}&incidentId=${state.recordId || '8c82b043835a121036b4a230ceaad3f8'}`, {
+			method: 'GET',
+			headers: {
+				"ngrok-skip-browser-warning": "69420"
+			}
+		})
+		const response = await res.json();
+		updateState({
+			summaryContent: response?.summary,
+			isSummaryReady: true
+		})
+	}catch(error) {
+		console.log("Error fetching Summary:", error);
+		updateState({
+			isSummaryReady: true,
+			summaryContent: 'Failed to load summary.'
+		})
+		
+	}
+}
 
-	}catch(err) {
-		console.log(err);
+
+const generateAiAnswer = async ({state, updateState}) => {
+	updateState({isAIanswerReady: false})
+	const aiAnswerUrl = `${baseUrl}/api/widget/app.servicenow.webchat.aiAnswer?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
+	try {
+		const res = await fetch(`${aiAnswerUrl}&incidentId=${state.recordId || '8c82b043835a121036b4a230ceaad3f8'}`,{
+			method: 'GET',
+			headers: {
+				"ngrok-skip-browser-warning": "69420"
+			}
+		})
+
+		const response = await res.json();
+		updateState({
+			aiAnswer: response?.summary,
+			isAIanswerReady: true
+		})
+	}catch(error)  {
+		console.log("Error fetching AIAnswer:", error);
+		updateState({
+			isAIanswerReady: true,
+			aiAnswer: 'Failed to load Ai answer.'
+		})
 	}
 }
 
@@ -254,6 +307,14 @@ const generateCaseSummary = async ({state, updateState}) => {
 const generateKnowledgeHandler = (state, updateState) => {
 	generateKnowledge({state, updateState});
 };
+
+const generateCaseSummaryHandler = (state, updateState) => {
+	generateCaseSummary({state, updateState})
+}
+
+const generateAiAnswerHandler = (state, updateState) => {
+	generateAiAnswer({state, updateState})
+}
 
 createCustomElement('x-1578569-enjo-test', {
 	renderer: {type: snabbdom},
@@ -282,7 +343,6 @@ createCustomElement('x-1578569-enjo-test', {
 	},
 	actionHandlers: {
 		[actionTypes.COMPONENT_CONNECTED]: async ({state, updateState, dispatch}) => {
-			dispatch('FETCH_CASE_DATA')
 			let url = window.location.pathname;
 			const reg = new RegExp(/^[a-f0-9]{32}$/);
 			let incidentId = "";
@@ -298,33 +358,15 @@ createCustomElement('x-1578569-enjo-test', {
 				}
 			})
 			const response = await res.json()
-
-			const summaryRes = await fetch(`${summaryUrl}&incidentId=${incidentId || '8c82b043835a121036b4a230ceaad3f8'}`, {
-				method: 'GET',
-				headers: {
-					"ngrok-skip-browser-warning": "69420"
-				}
-			})
-			const summaryResponse = await summaryRes.json();
-
-			const aiAnswerRes = await fetch(`${aiAnswerUrl}&incidentId=${incidentId || '8c82b043835a121036b4a230ceaad3f8'}`,{
-				method: 'GET',
-				headers: {
-					"ngrok-skip-browser-warning": "69420"
-				}
-			})
-
-			const aiAnswerResponse = await aiAnswerRes.json();
+			generateCaseSummaryHandler(state, updateState)
+			generateAiAnswerHandler(state, updateState);
 			const externalContentUrl = `${baseUrl}/api/hook/webchat.servicenow?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}&incidentId=${incidentId || '8c82b043835a121036b4a230ceaad3f8'}`;
-
 
 			updateState({
 				logoUrl: response?.data?.logoUrl || 'https://app.enjo.ai/enjologo.svg',
 				widgetHeading: response?.data?.header || widgetHeading,
 				buttonHeading: response?.data?.buttonHeading || buttonHeading,
-				summaryContent: summaryResponse?.summary,
 				showFooter: response?.data?.showEnjoBranding,
-				aiAnswer: aiAnswerResponse?.summary,
 				recordId: incidentId,
 				chatUrl: externalContentUrl
 			})
