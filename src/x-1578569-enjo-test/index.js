@@ -1,9 +1,9 @@
-import {createCustomElement} from '@servicenow/ui-core';
+import { createCustomElement } from '@servicenow/ui-core';
 import snabbdom from '@servicenow/ui-renderer-snabbdom';
 import styles from './styles.scss';
-import {actionTypes} from '@servicenow/ui-core';
+import { actionTypes } from '@servicenow/ui-core';
 import '@servicenow/now-rich-text'
-const view = (state, {updateState}) => {
+const view = (state, { updateState }) => {
 	const {
 		activeTab,
 		activeSections,
@@ -31,12 +31,12 @@ const view = (state, {updateState}) => {
 				<div className="header-card">
 					<div className="header-content">
 						<div className="logo-section">
-							<img src={logoUrl || "enjo-logo.png"} alt="Enjo Logo" className="logo-class"/>
+							<img src={logoUrl || "enjo-logo.png"} alt="Enjo Logo" className="logo-class" />
 							<span className="heading">{widgetHeading || "Enjo Assistant"}</span>
 						</div>
 						<div className="button-section">
-							<button className="btn btn-primary" 
-								on-click={() => updateState({isIframeVisible: !isIframeVisible})}
+							<button className="btn btn-primary"
+								on-click={() => updateState({ isIframeVisible: !isIframeVisible })}
 								disabled={isApiCallInProgress}>
 								{isIframeVisible ? 'Close' : (buttonHeading || 'Ask Enjo')}
 							</button>
@@ -49,11 +49,11 @@ const view = (state, {updateState}) => {
 					<div className="tabs-container">
 						<div className="tabs-header">
 							<div className={`tab ${activeTab === 'chat' ? 'active' : ''}`}
-								on-click={() => updateState({activeTab: 'chat'})}>
+								on-click={() => updateState({ activeTab: 'chat' })}>
 								Chat
 							</div>
 							<div className={`tab ${activeTab === 'recommendations' ? 'active' : ''}`}
-								on-click={() => updateState({activeTab: 'recommendations'})}>
+								on-click={() => updateState({ activeTab: 'recommendations' })}>
 								Recommendations
 							</div>
 						</div>
@@ -62,7 +62,7 @@ const view = (state, {updateState}) => {
 						<div className="tab-content">
 							{activeTab === 'chat' && (
 								<div className="chat-container">
-									<iframe src={state.chatUrl} className="chat-frame"/>
+									<iframe src={state.chatUrl} className="chat-frame" />
 								</div>
 							)}
 
@@ -73,7 +73,7 @@ const view = (state, {updateState}) => {
 										<div className="accordion-section">
 											<div className="accordion-header"
 												on-click={() => updateState({
-													activeSections: activeSections.includes('summary') 
+													activeSections: activeSections.includes('summary')
 														? activeSections.filter(s => s !== 'summary')
 														: [...activeSections, 'summary']
 												})}>
@@ -82,7 +82,7 @@ const view = (state, {updateState}) => {
 											{activeSections.includes('summary') && (
 												<div className="accordion-content">
 													<div className="content-area">
-														{!isSummaryReady && <div className="spinner"/>}
+														{!isSummaryReady && <div className="spinner" />}
 														<now-rich-text html={summaryContent}></now-rich-text>
 														<div className="action-buttons">
 															<button className="btn-icon refresh"
@@ -103,7 +103,7 @@ const view = (state, {updateState}) => {
 										<div className="accordion-section">
 											<div className="accordion-header"
 												on-click={() => updateState({
-													activeSections: activeSections.includes('aiAnswer') 
+													activeSections: activeSections.includes('aiAnswer')
 														? activeSections.filter(s => s !== 'aiAnswer')
 														: [...activeSections, 'aiAnswer']
 												})}>
@@ -112,7 +112,7 @@ const view = (state, {updateState}) => {
 											{activeSections.includes('aiAnswer') && (
 												<div className="accordion-content">
 													<div className="content-area">
-														{!isAIanswerReady && <div className="spinner"/>}
+														{!isAIanswerReady && <div className="spinner" />}
 														<now-rich-text html={aiAnswer}></now-rich-text>
 														<div className="action-buttons">
 															<button className="btn-icon refresh"
@@ -133,7 +133,7 @@ const view = (state, {updateState}) => {
 										<div className="accordion-section">
 											<div className="accordion-header"
 												on-click={() => updateState({
-													activeSections: activeSections.includes('kb') 
+													activeSections: activeSections.includes('kb')
 														? activeSections.filter(s => s !== 'kb')
 														: [...activeSections, 'kb']
 												})}>
@@ -145,12 +145,12 @@ const view = (state, {updateState}) => {
 														<div className="kb-header">
 															<span className="help-text">Click only when a case is closed</span>
 															<button className="btn btn-secondary"
-																on-click={() => generateKnowledgeHandler(state, updateState)} 
-																>
+																on-click={() => generateKnowledgeHandler(state, updateState)}
+															>
 																Generate
 															</button>
 														</div>
-														{!isKnowledgeReady && <div className="spinner"/>}
+														{!isKnowledgeReady && <div className="spinner" />}
 														<now-rich-text html={knowledgeContent}></now-rich-text>
 														<div className="action-buttons">
 															<button className="btn-icon refresh"
@@ -177,7 +177,7 @@ const view = (state, {updateState}) => {
 				{showFooter && (
 					<div className="footer">
 						<span>Powered by</span>
-						
+
 						<a href="https://enjo.ai" target="_blank"><img src={logoUrl} alt="Enjo" /></a>
 					</div>
 				)}
@@ -189,7 +189,7 @@ const view = (state, {updateState}) => {
 					<div className="modal-content">
 						<h2>{modalHeading}</h2>
 						<p>{modalText}</p>
-						<button on-click={() => updateState({isModalOpen: false})}>Close</button>
+						<button on-click={() => updateState({ isModalOpen: false })}>Close</button>
 					</div>
 				</div>
 			)}
@@ -218,45 +218,45 @@ const copyHandler = (content) => {
 	const text = html.body.innerText || html.body.textContent;
 
 	navigator.clipboard.writeText(text)
-	.then(() => {
+		.then(() => {
 
-	})
-	.catch((err) => {
-		console.log('Error in copying:', error)
-	}) 
+		})
+		.catch((err) => {
+			console.log('Error in copying:', error)
+		})
 }
 
-const generateKnowledge = async ({state, updateState}) => {
+const generateKnowledge = async ({ state, updateState, incidentId }) => {
 	const knowledgeUrl = `${baseUrl}/api/widget/app.servicenow.webchat.generateKnowledge?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
-	updateState({isKnowledgeReady: false});
+	updateState({ isKnowledgeReady: false });
 	try {
-	  const res = await fetch(`${knowledgeUrl}&incidentId=${state.recordId || '8c82b043835a121036b4a230ceaad3f8'}`, {
-		method: 'GET',
-		headers: {
-		  "ngrok-skip-browser-warning": "69420"
-		}
-	  });
-  
-	  const response = await res.json();
-  
-	  updateState({
-		knowledgeContent: response?.summary || 'No knowledge found.',
-		isKnowledgeReady: true,
-	  });
+		const res = await fetch(`${knowledgeUrl}&incidentId=${state.recordId || incidentId}`, {
+			method: 'GET',
+			headers: {
+				"ngrok-skip-browser-warning": "69420"
+			}
+		});
+
+		const response = await res.json();
+
+		updateState({
+			knowledgeContent: response?.summary || 'No knowledge found.',
+			isKnowledgeReady: true,
+		});
 	} catch (error) {
-	  console.error("Error fetching knowledge:", error);
-	  updateState({
-		isKnowledgeReady: true, 
-		knowledgeContent: 'Failed to load knowledge.',
-	  });
+		console.error("Error fetching knowledge:", error);
+		updateState({
+			isKnowledgeReady: true,
+			knowledgeContent: 'Failed to load knowledge.',
+		});
 	}
 };
 
-const generateCaseSummary = async ({state, updateState}) => {
+const generateCaseSummary = async ({ state, updateState, incidentId }) => {
 	const summaryUrl = `${baseUrl}/api/widget/app.servicenow.webchat.summary?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
-	updateState({isSummaryReady: false})
+	updateState({ isSummaryReady: false })
 	try {
-		const res = await fetch(`${summaryUrl}&incidentId=${state.recordId || '8c82b043835a121036b4a230ceaad3f8'}`, {
+		const res = await fetch(`${summaryUrl}&incidentId=${state.recordId || incidentId}`, {
 			method: 'GET',
 			headers: {
 				"ngrok-skip-browser-warning": "69420"
@@ -267,22 +267,22 @@ const generateCaseSummary = async ({state, updateState}) => {
 			summaryContent: response?.summary,
 			isSummaryReady: true
 		})
-	}catch(error) {
+	} catch (error) {
 		console.log("Error fetching Summary:", error);
 		updateState({
 			isSummaryReady: true,
 			summaryContent: 'Failed to load summary.'
 		})
-		
+
 	}
 }
 
 
-const generateAiAnswer = async ({state, updateState}) => {
-	updateState({isAIanswerReady: false})
+const generateAiAnswer = async ({ state, updateState, incidentId }) => {
+	updateState({ isAIanswerReady: false })
 	const aiAnswerUrl = `${baseUrl}/api/widget/app.servicenow.webchat.aiAnswer?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}`;
 	try {
-		const res = await fetch(`${aiAnswerUrl}&incidentId=${state.recordId || '8c82b043835a121036b4a230ceaad3f8'}`,{
+		const res = await fetch(`${aiAnswerUrl}&incidentId=${state.recordId || incidentId}`, {
 			method: 'GET',
 			headers: {
 				"ngrok-skip-browser-warning": "69420"
@@ -294,7 +294,7 @@ const generateAiAnswer = async ({state, updateState}) => {
 			aiAnswer: response?.summary,
 			isAIanswerReady: true
 		})
-	}catch(error)  {
+	} catch (error) {
 		console.log("Error fetching AIAnswer:", error);
 		updateState({
 			isAIanswerReady: true,
@@ -303,21 +303,21 @@ const generateAiAnswer = async ({state, updateState}) => {
 	}
 }
 
-  
-const generateKnowledgeHandler = (state, updateState) => {
-	generateKnowledge({state, updateState});
+
+const generateKnowledgeHandler = (state, updateState, incidentId) => {
+	generateKnowledge({ state, updateState, incidentId });
 };
 
-const generateCaseSummaryHandler = (state, updateState) => {
-	generateCaseSummary({state, updateState})
+const generateCaseSummaryHandler = (state, updateState, incidentId) => {
+	generateCaseSummary({ state, updateState, incidentId })
 }
 
-const generateAiAnswerHandler = (state, updateState) => {
-	generateAiAnswer({state, updateState})
+const generateAiAnswerHandler = (state, updateState, incidentId) => {
+	generateAiAnswer({ state, updateState, incidentId })
 }
 
 createCustomElement('x-1578569-enjo-test', {
-	renderer: {type: snabbdom},
+	renderer: { type: snabbdom },
 	view,
 	styles,
 	initialState: {
@@ -342,12 +342,12 @@ createCustomElement('x-1578569-enjo-test', {
 		chatUrl: "",
 	},
 	actionHandlers: {
-		[actionTypes.COMPONENT_CONNECTED]: async ({state, updateState, dispatch}) => {
+		[actionTypes.COMPONENT_CONNECTED]: async ({ state, updateState, dispatch }) => {
 			let url = window.location.pathname;
 			const reg = new RegExp(/^[a-f0-9]{32}$/);
 			let incidentId = "";
 			url.split('/').forEach((data) => {
-				if(data.match(reg)) {
+				if (data.match(reg)) {
 					incidentId = data;
 				}
 			})
@@ -357,9 +357,10 @@ createCustomElement('x-1578569-enjo-test', {
 					"ngrok-skip-browser-warning": "69420"
 				}
 			})
+			console.log('what is incidentId and servicenow domain', incidentId, servicenowDomain)
 			const response = await res.json()
-			generateCaseSummaryHandler(state, updateState)
-			generateAiAnswerHandler(state, updateState);
+			generateCaseSummaryHandler(state, updateState, incidentId)
+			generateAiAnswerHandler(state, updateState, incidentId);
 			const externalContentUrl = `${baseUrl}/api/hook/webchat.servicenow?isServicenow=true&servicenowDomain=${encodeURIComponent(servicenowDomain)}&incidentId=${incidentId || '8c82b043835a121036b4a230ceaad3f8'}`;
 
 			updateState({
